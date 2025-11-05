@@ -2,15 +2,14 @@
 // 🧠 Importing Required Modules
 // ---------------------------------------------
 
+import dotenv from "dotenv"; // Load environment variables from .env
+dotenv.config(); // Load environment variables from .env file
+
 import express from "express"; // Web framework for HTTP routes
 import { WebSocketServer } from "ws"; // Real-time communication via WebSocket
-import mongoose from "mongoose"; // MongoDB ODM
 import SensorReading from "./models/SensorReading.js"; // SensorReading model
 import cors from "cors"; // Enables cross-origin requests
-import dotenv from "dotenv"; // Load environment variables from .env
-
-// Load environment variables from .env file
-dotenv.config();
+import { connectDB } from "./config/db.js"; // MongoDB connection function
 
 // ---------------------------------------------
 // ⚙️ Create Express App
@@ -29,12 +28,7 @@ app.use(express.json()); // Enable parsing of JSON request bodies
 // 🛢️ Connect to MongoDB
 // ---------------------------------------------
 
-try {
-  await mongoose.connect(process.env.MONGODB_URL);
-  console.log("✅ Connected to MongoDB");
-} catch (error) {
-  console.error("❌ MongoDB connection error:", error);
-}
+await connectDB();
 
 // ---------------------------------------------
 // 🌐 WebSocket Server Setup
