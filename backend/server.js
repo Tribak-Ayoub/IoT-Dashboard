@@ -37,40 +37,31 @@ await connectDB();
 const wss = new WebSocketServer({ port: 8080 });
 console.log("✅ WebSocket server running on ws://localhost:8080");
 
-// ---------------------------------------------
-// 🔄 Simulate Sensor Data
-// ---------------------------------------------
-
-setInterval(async () => {
-  // Generate random sensor readings
-  const data = {
-    deviceId: "device-001",
-    temperature: Math.floor(Math.random() * 30) + 15, // 15–44°C
-    humidity: Math.floor(Math.random() * 50) + 30, // 30–79%
-  };
-
-  // Save sensor reading to MongoDB
-  const reading = new SensorReading(data);
-  await reading.save();
-
-  // Broadcast data to all connected WebSocket clients
+// Function to broadcast data to all clients
+export function broadcastData(data) {
   wss.clients.forEach((client) => {
-    if (client.readyState === 1) {
-      // 1 = OPEN
-      client.send(JSON.stringify(data));
-    }
+    if (client.readyState === 1) client.send(JSON.stringify(data));
   });
-
-  console.log("📡 New data saved and broadcasted:", data);
-}, 5000); // Run every 5 seconds
-
-// ---------------------------------------------
-// 🧪 Health Check Route
-// ---------------------------------------------
+}
 
 // Simple endpoint to check if backend is running
 app.get("/", (req, res) => {
   res.send("IoT Backend is running");
+});
+
+// POST route to receive sensor data
+app.post("/api/sensors", async (req, res) => {
+  try {
+    const { deviceId, temperature, humidity } = req.body;
+    const reading = new SensorReading({ deviceId, temperature, humidity });
+    await reading.save();
+
+    broadcastData(reading);
+    res.status(201).json(reading);
+  } catch (error) {
+    console.error("Error saving sensor data:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 // ---------------------------------------------
