@@ -30,9 +30,7 @@ app.use(express.json()); // Enable parsing of JSON request bodies
 // ---------------------------------------------
 
 try {
-  await mongoose.connect(
-    "mongodb+srv://tribak:password0000@iot-db.irbecri.mongodb.net/?appName=IoT-DB"
-  );
+  await mongoose.connect(process.env.MONGODB_URL);
   console.log("✅ Connected to MongoDB");
 } catch (error) {
   console.error("❌ MongoDB connection error:", error);
