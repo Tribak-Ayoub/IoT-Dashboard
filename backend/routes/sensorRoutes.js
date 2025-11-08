@@ -1,18 +1,9 @@
 import express from "express";
-import SensorReading from "../models/SensorReading";
+import SensorReading from "../models/SensorReading.js";
 
 const router = express.Router();
 
-/**
- * POST /api/sensors
- * Receives a new sensor reading and saves it to MongoDB.
- * Example payload:
- * {
- *   "deviceId": "DEVICE_001",
- *   "temperature": 26.5,
- *   "humidity": 40
- * }
- */
+// POST /api/sensors → Add a new sensor reading
 router.post("/", async (req, res) => {
   try {
     const { deviceId, temperature, humidity } = req.body;
@@ -38,6 +29,7 @@ router.post("/", async (req, res) => {
   }
 });
 
+// GET /api/sensors?limit=10 → Get last N readings
 router.get("/", async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -51,3 +43,17 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// DELETE /api/sensors → Delete all readings (for testing)
+router.delete("/", async (req, res) => {
+  console.log("🗑️ DELETE request received at /api/sensors");
+  try {
+    await SensorReading.deleteMany({});
+    res.json({ message: "All sensor readings deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting sensor readings:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+export default router;
