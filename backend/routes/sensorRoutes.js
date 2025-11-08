@@ -1,5 +1,6 @@
 import express from "express";
 import SensorReading from "../models/SensorReading.js";
+import { broadcastSensorData } from "../server.js";
 
 const router = express.Router();
 
@@ -18,6 +19,9 @@ router.post("/", async (req, res) => {
       humidity,
     });
     await newSensorReading.save();
+
+    // Broadcast live update
+    broadcastSensorData(newSensorReading);
 
     res.status(201).json({
       message: "Sensor reading saved successfully",

@@ -6,7 +6,8 @@ import dotenv from "dotenv"; // Load environment variables from .env
 dotenv.config(); // Load environment variables from .env file
 
 import express from "express"; // Web framework for HTTP routes
-import { WebSocketServer } from "ws"; // Real-time communication via WebSocket
+import http from "http"; // Required to attach Socket.IO
+import { Server as SocketIOServer } from "socket.io";
 import cors from "cors"; // Enables cross-origin requests
 import { connectDB } from "./config/db.js"; // MongoDB connection function
 import sensorRoutes from "./routes/sensorRoutes.js"; // Sensor routes
@@ -16,7 +17,12 @@ import sensorRoutes from "./routes/sensorRoutes.js"; // Sensor routes
 // ---------------------------------------------
 
 const app = express(); // Initialize Express app
-
+const server = http.createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: "*", // Allow all origins (for development)
+  },
+});
 // ---------------------------------------------
 // 🧩 Middleware Setup
 // ---------------------------------------------
@@ -30,6 +36,23 @@ app.use(express.json()); // Enable parsing of JSON request bodies
 
 await connectDB();
 
+// ---------------------------------------------
+// 🔌 Socket.IO Setup
+// ---------------------------------------------
+
+io.on("connection", (socket) => {
+  console.log("🟢 Client connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("🔴 Client disconnected:", socket.id);
+  });
+});
+
+// Helper function to broadcast data
+export function broadcastSensorData(data) {
+  io.emit("sensor:update", data); // Emit event to all connected clients
+}
+
 // Register routes
 app.use("/api/sensors", sensorRoutes);
 
@@ -39,25 +62,11 @@ app.get("/", (req, res) => {
 });
 
 // ---------------------------------------------
-// 🌐 WebSocket Server Setup
-// ---------------------------------------------
-
-const wss = new WebSocketServer({ port: 8080 });
-console.log("✅ WebSocket server running on ws://localhost:8080");
-
-// Function to broadcast data to all clients
-export function broadcastData(data) {
-  wss.clients.forEach((client) => {
-    if (client.readyState === 1) client.send(JSON.stringify(data));
-  });
-}
-
-// ---------------------------------------------
 // 🚀 Start HTTP Server
 // ---------------------------------------------
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
 });
