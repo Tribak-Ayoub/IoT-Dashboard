@@ -7,9 +7,9 @@ dotenv.config(); // Load environment variables from .env file
 
 import express from "express"; // Web framework for HTTP routes
 import { WebSocketServer } from "ws"; // Real-time communication via WebSocket
-import SensorReading from "./models/SensorReading.js"; // SensorReading model
 import cors from "cors"; // Enables cross-origin requests
 import { connectDB } from "./config/db.js"; // MongoDB connection function
+import sensorRoutes from "./routes/sensorRoutes.js"; // Sensor routes
 
 // ---------------------------------------------
 // ⚙️ Create Express App
@@ -30,6 +30,14 @@ app.use(express.json()); // Enable parsing of JSON request bodies
 
 await connectDB();
 
+// Register routes
+app.use("/api/sensors", sensorRoutes);
+
+// Simple endpoint to check if backend is running
+app.get("/", (req, res) => {
+  res.send("IoT Backend is running");
+});
+
 // ---------------------------------------------
 // 🌐 WebSocket Server Setup
 // ---------------------------------------------
@@ -43,26 +51,6 @@ export function broadcastData(data) {
     if (client.readyState === 1) client.send(JSON.stringify(data));
   });
 }
-
-// Simple endpoint to check if backend is running
-app.get("/", (req, res) => {
-  res.send("IoT Backend is running");
-});
-
-// POST route to receive sensor data
-app.post("/api/sensors", async (req, res) => {
-  try {
-    const { deviceId, temperature, humidity } = req.body;
-    const reading = new SensorReading({ deviceId, temperature, humidity });
-    await reading.save();
-
-    broadcastData(reading);
-    res.status(201).json(reading);
-  } catch (error) {
-    console.error("Error saving sensor data:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 
 // ---------------------------------------------
 // 🚀 Start HTTP Server
