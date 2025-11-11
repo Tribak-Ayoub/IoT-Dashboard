@@ -20,6 +20,11 @@ async function sendSensorData(deviceId) {
   }
 }
 
-// Run every 5 seconds
-const DEVICE_ID = "device-001";
-setInterval(() => sendSensorData(DEVICE_ID), 5000);
+function startSensor(deviceId, interval = 5000) {
+  console.log(`sensor "${deviceId}" started`);
+  setInterval(() => sendSensorData(deviceId), interval);
+}
+
+// Start multiple sensors
+startSensor("sensor-001", 5000);
+startSensor("sensor-002", 7000);
