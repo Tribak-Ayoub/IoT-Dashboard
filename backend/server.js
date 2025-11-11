@@ -9,8 +9,10 @@ import express from "express"; // Web framework for HTTP routes
 import http from "http"; // Required to attach Socket.IO
 import { Server as SocketIOServer } from "socket.io";
 import cors from "cors"; // Enables cross-origin requests
+import morgan from "morgan";
 import { connectDB } from "./config/db.js"; // MongoDB connection function
 import sensorRoutes from "./routes/sensorRoutes.js"; // Sensor routes
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 // ---------------------------------------------
 // ⚙️ Create Express App
@@ -29,6 +31,7 @@ const io = new SocketIOServer(server, {
 
 app.use(cors()); // Allow frontend (different origin) to access backend
 app.use(express.json()); // Enable parsing of JSON request bodies
+app.use(morgan("dev")); // Log HTTP requests to console
 
 // ---------------------------------------------
 // 🛢️ Connect to MongoDB
@@ -60,6 +63,9 @@ app.use("/api/sensors", sensorRoutes);
 app.get("/", (req, res) => {
   res.send("IoT Backend is running");
 });
+
+// Register global error handler after all routes
+app.use(errorHandler);
 
 // ---------------------------------------------
 // 🚀 Start HTTP Server

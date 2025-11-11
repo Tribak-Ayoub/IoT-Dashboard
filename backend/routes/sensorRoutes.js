@@ -5,12 +5,14 @@ import { broadcastSensorData } from "../server.js";
 const router = express.Router();
 
 // POST /api/sensors → Add a new sensor reading
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   try {
     const { deviceId, temperature, humidity } = req.body;
 
     if (!deviceId || temperature === undefined || humidity === undefined) {
-      return res.status(400).json({ message: "Missing required fields" });
+      const error = new Error("Missing required fields");
+      error.statusCode = 400;
+      throw error;
     }
 
     const newSensorReading = new SensorReading({
@@ -24,39 +26,41 @@ router.post("/", async (req, res) => {
     broadcastSensorData(newSensorReading);
 
     res.status(201).json({
+      success: true,
       message: "Sensor reading saved successfully",
       data: newSensorReading,
     });
   } catch (error) {
-    console.error("Error saving sensor reading:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error); // Pass to centralized error handler
   }
 });
 
 // GET /api/sensors?limit=10 → Get last N readings
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
 
     const readings = await SensorReading.find()
       .sort({ timestamp: -1 })
       .limit(limit);
-    res.json(readings);
+
+    res.json({ success: true, data: readings });
   } catch (error) {
-    console.error("Error fetching sensor readings:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 });
 
 // DELETE /api/sensors → Delete all readings (for testing)
-router.delete("/", async (req, res) => {
+router.delete("/", async (req, res, next) => {
   console.log("🗑️ DELETE request received at /api/sensors");
   try {
     await SensorReading.deleteMany({});
-    res.json({ message: "All sensor readings deleted successfully" });
+    res.json({
+      success: true,
+      message: "All sensor readings deleted successfully",
+    });
   } catch (error) {
-    console.error("Error deleting sensor readings:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 });
 
