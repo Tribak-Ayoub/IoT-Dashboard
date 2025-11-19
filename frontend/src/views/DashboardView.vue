@@ -6,6 +6,10 @@
         </header>
 
         <main class="flex-1 p-6">
+            <section class="mt-6">
+                <Chart />
+            </section>
+
             <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <SensorCard title="Temperature" :value="temperature" unit="°C" :lastUpdated="lastUpdated" />
                 <SensorCard title="Humidity" :value="humidity" unit="%" :lastUpdated="lastUpdated" />
@@ -41,6 +45,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
 import socket from "../services/socket.js";
 import SensorCard from "../components/SensorCard.vue";
 import { timeAgo } from "../utils/time.js";
+import Chart from "../components/SensorChart.vue";
 
 const temperature = ref("--");
 const humidity = ref("--");

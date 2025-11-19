@@ -64,4 +64,21 @@ router.delete("/", async (req, res, next) => {
   }
 });
 
+// GET /api/sensors/history?limit=50
+router.get("/history", async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit) || 50;
+
+    const readings = await SensorReading.find()
+      .sort({ timestamp: -1 })
+      .limit(limit)
+      .lean();
+
+    res.json({ success: true, data: readings.reverse() });
+  } catch (error) {
+    console.error("Error fetching sensor history:", error);
+    next(error);
+  }
+});
+
 export default router;
