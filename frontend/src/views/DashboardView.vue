@@ -11,8 +11,8 @@
             </section>
 
             <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <SensorCard title="Temperature" :value="temperature" unit="°C" :lastUpdated="lastUpdated" />
-                <SensorCard title="Humidity" :value="humidity" unit="%" :lastUpdated="lastUpdated" />
+                <SensorCard title="Temperature" :value="temperature" unit="°C" :lastUpdated="lastUpdated" :alert="isTempAlert"/>
+                <SensorCard title="Humidity" :value="humidity" unit="%" :lastUpdated="lastUpdated" :alert="isHumidityAlert"/>
             </section>
 
             <section class="bg-white shadow rounded-xl p-4">
@@ -83,6 +83,14 @@ function handleSensorUpdate(data) {
 
     deviceLastUpdated[data.deviceId] = ts;
 }
+
+const isTempAlert = computed(() => {
+    return typeof temperature.value === "number" && temperature.value > 30;
+});
+
+const isHumidityAlert = computed(() => {
+    return typeof humidity.value === "number" && humidity.value > 70;
+});
 
 onMounted(() => {
     socket.on("sensor:update", handleSensorUpdate);
