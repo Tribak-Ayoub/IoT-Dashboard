@@ -1,12 +1,31 @@
 <template>
     <div :class="cardClass">
-        <div class="flex justify-between items-center">
-            <h3 class="text-sm" :class="titleClass">{{ title }}</h3>
-            <span v-if="alert" class="text-red-600 text-lg font-bold">⚠️</span>
+        <!-- Card Header -->
+        <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="p-3 rounded-lg" :class="iconBgClass">
+                    <span class="text-2xl">{{ icon }}</span>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-muted dark:text-muted-dark">{{ title }}</p>
+                    <p class="text-xs text-muted dark:text-muted-dark/70">{{ lastUpdatedText }}</p>
+                </div>
+            </div>
+            <div v-if="alert" class="flex items-center gap-1 px-2.5 py-1.5 bg-red-100 dark:bg-red-950/40 rounded-lg">
+                <span class="text-lg">⚠️</span>
+            </div>
         </div>
 
-        <p :class="valueClass">{{ displayValue }}</p>
-        <p class="text-xs text-gray-400">Last: {{ lastUpdatedText }}</p>
+        <!-- Card Value -->
+        <div class="mb-1">
+            <p :class="valueClass">{{ displayValue }}</p>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="flex items-center gap-2 pt-3 border-t border-border dark:border-border-dark">
+            <div class="w-2 h-2 rounded-full" :class="statusIndicatorClass"></div>
+            <span class="text-xs text-muted dark:text-muted-dark">{{ alert ? 'Alert Status' : 'Normal' }}</span>
+        </div>
     </div>
 </template>
 
@@ -20,6 +39,7 @@ const props = defineProps({
     lastUpdated: { type: [Number, String, Date, null], default: null },
     unit: { type: String, default: "" },
     alert: { type: Boolean, default: false },
+    icon: { type: String, default: "📊" },
 });
 
 const displayValue = computed(() => {
@@ -31,17 +51,32 @@ const lastUpdatedText = computed(() => {
     return timeAgo(props.lastUpdated);
 });
 
-const cardClass = computed(() =>
-    props.alert
-        ? "bg-red-100 border border-red-400 shadow rounded-xl p-6"
-        : "bg-white shadow rounded-xl p-6"
-);
+const cardClass = computed(() => {
+    const baseClass = "bg-card dark:bg-card-dark border rounded-2xl p-6 shadow-md dark:shadow-lg transition-all duration-300";
+    if (props.alert) {
+        return `${baseClass} border-red-300 dark:border-red-800/50 bg-red-50/50 dark:bg-red-950/20`;
+    }
+    return `${baseClass} border-border dark:border-border-dark hover:border-blue-200 dark:hover:border-blue-800`;
+});
 
-const valueClass = computed(() =>
-    props.alert ? "text-4xl font-bold my-2 text-red-600" : "text-4xl font-bold my-2"
-);
+const valueClass = computed(() => {
+    const baseClass = "text-5xl md:text-6xl font-bold font-mono tracking-tight";
+    if (props.alert) {
+        return `${baseClass} text-red-600 dark:text-red-400`;
+    }
+    return `${baseClass} text-foreground dark:text-foreground-dark`;
+});
 
-const titleClass = computed(() =>
-    props.alert ? "text-red-600" : "text-gray-500"
-);
+const iconBgClass = computed(() => {
+    if (props.alert) {
+        return "bg-red-100 dark:bg-red-950/50";
+    }
+    return "bg-blue-100 dark:bg-blue-950/50";
+});
+
+const statusIndicatorClass = computed(() => {
+    return props.alert
+        ? "bg-red-500 dark:bg-red-400"
+        : "bg-green-500 dark:bg-green-400";
+});
 </script>

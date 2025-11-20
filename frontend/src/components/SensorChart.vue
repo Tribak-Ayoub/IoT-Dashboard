@@ -1,7 +1,18 @@
 <template>
-    <div class="bg-white shadow rounded-xl p-4">
-        <h2 class="text-lg font-semibold mb-4">Sensor History</h2>
-        <canvas ref="canvas"></canvas>
+    <div class="p-6">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                        d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                </svg>
+            </div>
+            <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Sensor History</h2>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-4 h-96">
+            <canvas ref="canvas"></canvas>
+        </div>
     </div>
 </template>
 
@@ -10,7 +21,6 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 import { Chart } from "chart.js/auto";
 import socket from "../services/socket.js";
 import api from "../services/api.js"; // Axios wrapper
-console.log("📌 Chart component mounted");
 
 const canvas = ref(null);
 let chart = null;
@@ -49,11 +59,19 @@ function createChart(historyData) {
                 }
             ]
         },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: "top" },
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        },
     });
-    console.log("📌 Raw history from API:", historyData);
-    console.log("📌 Labels:", labels);
-    console.log("📌 Temperatures:", temperatures);
-    console.log("📌 Humidity:", humidity);
 
 }
 
