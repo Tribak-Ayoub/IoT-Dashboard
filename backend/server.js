@@ -1,5 +1,5 @@
 // ---------------------------------------------
-// 🧠 Importing Required Modules
+// Importing Required Modules
 // ---------------------------------------------
 
 import dotenv from "dotenv"; // Load environment variables from .env
@@ -10,6 +10,7 @@ import http from "http"; // Required to attach Socket.IO
 import { Server as SocketIOServer } from "socket.io";
 import cors from "cors"; // Enables cross-origin requests
 import morgan from "morgan";
+
 import { connectDB } from "./config/db.js"; // MongoDB connection function
 import sensorRoutes from "./routes/sensorRoutes.js"; // Sensor routes
 import { errorHandler } from "./middlewares/errorHandler.js";
@@ -20,28 +21,29 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express(); // Initialize Express app
 const server = http.createServer(app);
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
+// ---------------------------------------------
+// CORS Configuration
+// ---------------------------------------------
+app.use(
+  cors({
+    origin: FRONTEND_URL,
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
+
+// ---------------------------------------------
+// Socket.IO Setup
+// ---------------------------------------------
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "*", // Allow all origins (for development)
+    origin: FRONTEND_URL,
+    methods: ["GET", "POST"],
   },
 });
-// ---------------------------------------------
-// 🧩 Middleware Setup
-// ---------------------------------------------
-
-app.use(cors()); // Allow frontend (different origin) to access backend
-app.use(express.json()); // Enable parsing of JSON request bodies
-app.use(morgan("dev")); // Log HTTP requests to console
-
-// ---------------------------------------------
-// 🛢️ Connect to MongoDB
-// ---------------------------------------------
-
-await connectDB();
-
-// ---------------------------------------------
-// 🔌 Socket.IO Setup
-// ---------------------------------------------
 
 io.on("connection", (socket) => {
   console.log("🟢 Client connected:", socket.id);
@@ -55,6 +57,17 @@ io.on("connection", (socket) => {
 export function broadcastSensorData(data) {
   io.emit("sensor:update", data); // Emit event to all connected clients
 }
+
+// ---------------------------------------------
+// Middleware Setup
+// ---------------------------------------------
+app.use(express.json()); // Enable parsing of JSON request bodies
+app.use(morgan("dev")); // Log HTTP requests to console
+
+// ---------------------------------------------
+// Connect to MongoDB
+// ---------------------------------------------
+await connectDB();
 
 // Register routes
 app.use("/api/sensors", sensorRoutes);
